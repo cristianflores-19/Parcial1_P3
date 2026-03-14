@@ -38,36 +38,8 @@ public class App {
 
                 try {
                     Transaccion tx = mapper.readValue(mensajeJson, Transaccion.class);
-                    
-                    // ====================================================================
-                    //                 NUEVO SERIE II - INICIO DE MODIFICACIÓN
-                    // ====================================================================
-                    
-                    // 1. Evidenciar en consola la cola atendida y el ID procesado
-                    System.out.println("\nAtendiendo cola: " + banco + " | ID procesado: " + tx.getIdTransaccion());
-
-                    // 2. Condición principal: Si el monto > Q4000.00 se rechaza
-                    if (tx.getMonto() > 4000.00) {
-                        
-                        // Enviar a la nueva cola de rechazados
-                        channel.queueDeclare("cola_rechazados", true, false, false, null);
-                        channel.basicPublish("", "cola_rechazados", null, mensajeJson.getBytes(StandardCharsets.UTF_8));
-                        
-                        // Registro en consola (Formato exigido en el examen para rechazadas)
-                        System.out.println("idTransaccion: " + tx.getIdTransaccion());
-                        System.out.println("monto: Q." + tx.getMonto());
-                        System.out.println("estado: RECHAZADA");
-
-                        // Confirmamos a RabbitMQ que ya la movimos (no se pierde, solo cambia de cola)
-                        channel.basicAck(deliveryTag, false); 
-                        
-                    } else {
-                    // ====================================================================
-                    //                 NUEVO SERIE II - FIN DE MODIFICACIÓN
-                    // ====================================================================
-
-                        // (FLUJO ORIGINAL: Si es <= Q4000.00, se mantienen tus datos inyectados y va al POST)
-                        tx.setNombre("Christian Josue Flores Pleitez"); 
+                   
+                        tx.setNombre("Cristian Josue Flores Pleitez"); 
                         tx.setCarnet("0905-24-4847"); 
                         tx.setCorreo("cfloresp10@miumg.edu.gt"); 
                         
@@ -82,15 +54,6 @@ public class App {
                         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                         if (response.statusCode() == 200 || response.statusCode() == 201) {
-                            
-                            // ====================================================================
-                            // NUEVO SERIE II: Registro en consola (Formato exigido para aceptadas)
-                            // ====================================================================
-                            System.out.println("idTransaccion: " + tx.getIdTransaccion());
-                            System.out.println("monto: Q." + tx.getMonto());
-                            System.out.println("estado: ACEPTADA");
-                            // ====================================================================
-                            
                             channel.basicAck(deliveryTag, false); 
                         } else {
                             channel.basicNack(deliveryTag, false, true); 

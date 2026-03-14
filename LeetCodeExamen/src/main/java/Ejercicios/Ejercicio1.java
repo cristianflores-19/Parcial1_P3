@@ -14,6 +14,10 @@ public class Ejercicio1 {
         System.out.println("Entrada [5, 5, 5]        Salida: " + score(ejemplo3)); 
 
 	}
+	/*
+     * Complejidad temporal: O(n) porque el arreglo se recorre exactamente una vez.
+     * Complejidad espacial: O(1) porque solo se usan variables primitivas sin importar el tamaño de la entrada.
+     */
 	public static int score(int[] numbers) {
         int puntajeTotal = 0;
         
