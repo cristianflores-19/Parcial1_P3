@@ -43,7 +43,6 @@ public class App {
                     Transaccion tx = mapper.readValue(mensajeJson, Transaccion.class);
                     System.out.println("\nAtendiendo cola: " + banco + " | ID procesado: " + tx.getIdTransaccion());
 
-                    // --- PASO 2: LOGICA DE DETECCION DE DUPLICADOS ---
                     if (transaccionesProcesadas.contains(tx.getIdTransaccion())) {
                         
                         channel.queueDeclare("cola_duplicados", true, false, false, null);
@@ -56,7 +55,6 @@ public class App {
                         channel.basicAck(deliveryTag, false); 
                         
                     } else {
-                        // El flujo sigue normal hacia el POST
                         tx.setNombre("Cristian Josué Flores Pleitez"); 
                         tx.setCarnet("0905-24-4847"); 
                         tx.setCorreo("cfloresp5@miumg.edu.gt"); 
@@ -71,14 +69,29 @@ public class App {
                         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                         if (response.statusCode() == 200 || response.statusCode() == 201) {
+                            
+                            transaccionesProcesadas.add(tx.getIdTransaccion());
+
+                            System.out.println("idTransaccion: " + tx.getIdTransaccion());
+                            System.out.println("estado: Procesado");
+                            System.out.println("cola destino: POST");
+                            
                             channel.basicAck(deliveryTag, false); 
                         } else {
-                            channel.basicNack(deliveryTag, false, true); 
+                            channel.queueDeclare("cola_errores", true, false, false, null);
+                            channel.basicPublish("", "cola_errores", null, mensajeJson.getBytes(StandardCharsets.UTF_8));
+                            channel.basicAck(deliveryTag, false);
                         }
                     }
 
                 } catch (Exception e) {
-                    channel.basicNack(deliveryTag, false, true); 
+                    try {
+                        channel.queueDeclare("cola_errores", true, false, false, null);
+                        channel.basicPublish("", "cola_errores", null, mensajeJson.getBytes(StandardCharsets.UTF_8));
+                        channel.basicAck(deliveryTag, false);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 }
             };
 
