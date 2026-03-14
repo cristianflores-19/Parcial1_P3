@@ -9,10 +9,14 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class App {
 
     private static final String POST_API_URL = "https://7e0d9ogwzd.execute-api.us-east-1.amazonaws.com/default/guardarTransacciones";
+    
+    private static List<String> transaccionesProcesadas = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         
@@ -38,26 +42,28 @@ public class App {
 
                 try {
                     Transaccion tx = mapper.readValue(mensajeJson, Transaccion.class);
-                   
-                        tx.setNombre("Cristian Josue Flores Pleitez"); 
-                        tx.setCarnet("0905-24-4847"); 
-                        tx.setCorreo("cfloresp10@miumg.edu.gt"); 
-                        
-                        String jsonModificado = mapper.writeValueAsString(tx);
+                    
+                    // Registro de cola atendida e ID (Requerido por examen)
+                    System.out.println("\nAtendiendo cola: " + banco + " | ID procesado: " + tx.getIdTransaccion());
 
-                        HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(POST_API_URL))
-                                .header("Content-Type", "application/json") 
-                                .POST(HttpRequest.BodyPublishers.ofString(jsonModificado))
-                                .build();
+                    tx.setNombre("Cristian Josué Flores Pleitez"); 
+                    tx.setCarnet("0905-24-4847"); 
+                    tx.setCorreo("cfloresp5@miumg.edu.gt"); 
+                    
+                    String jsonModificado = mapper.writeValueAsString(tx);
 
-                        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(POST_API_URL))
+                            .header("Content-Type", "application/json") 
+                            .POST(HttpRequest.BodyPublishers.ofString(jsonModificado))
+                            .build();
 
-                        if (response.statusCode() == 200 || response.statusCode() == 201) {
-                            channel.basicAck(deliveryTag, false); 
-                        } else {
-                            channel.basicNack(deliveryTag, false, true); 
-                        }
+                    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                    if (response.statusCode() == 200 || response.statusCode() == 201) {
+                        channel.basicAck(deliveryTag, false); 
+                    } else {
+                        channel.basicNack(deliveryTag, false, true); 
                     }
 
                 } catch (Exception e) {
