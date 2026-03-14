@@ -24,6 +24,32 @@ public class Ejercicio2 {
             segundoMenor = nums[0];
         }
         
-       
+        if (mayor < segundoMayor) {
+            mayor = nums[1];
+            segundoMayor = nums[0];
+        }
+        
+        for (int i = 2; i < nums.length; i++) {
+            
+            if (nums[i] < menor) {
+                segundoMenor = menor;
+                menor = nums[i];
+            } else if (nums[i] < segundoMenor && nums[i] != menor) {
+                segundoMenor = nums[i];
+            }
+            
+            if (nums[i] > mayor) {
+                segundoMayor = mayor;
+                mayor = nums[i];
+            } else if (nums[i] > segundoMayor && nums[i] != mayor) {
+                segundoMayor = nums[i];
+            }
+        }
+        
+        int[] res = new int[2];
+        res[0] = segundoMenor;
+        res[1] = segundoMayor;
+        
+        return res;
     }
 }
